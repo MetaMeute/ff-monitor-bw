@@ -1,0 +1,8 @@
+[Unit]
+Description=Script for measuring the available bandwidth on an interface
+
+[Service]
+ExecStart=/usr/local/bin/monitor-bw.sh /var/log/rrd/monitor-bw.rrd
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,56 @@
+#!/bin/sh
+
+### BEGIN INIT INFO
+# Provides:          monitor-bw
+# Required-Start:    $network $remote_fs $syslog
+# Required-Stop:     $network $remote_fs $syslog
+# Should-Start:      network-manager
+# Should-Stop:       network-manager
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: Available Bandwidth Monitoring Tool
+# Description: This collection of scripts measures and monitors
+#              the available throughput on a given interface
+#              via a certain router
+### END INIT INFO
+
+PATH=/sbin:/bin:/usr/sbin:/usr/bin
+NAME=monitor-bw
+DAEMON=/usr/local/bin/$NAME.sh
+DAEMON_ARGS="/var/log/rrd/monitor-bw.rrd"
+PIDFILE=/var/run/$NAME.pid
+
+do_start() {
+  start-stop-daemon --start --quiet --pidfile $PIDFILE --exec $DAEMON --test > /dev/null \
+    || return 1
+  start-stop-daemon -b -m --start --quiet --pidfile $PIDFILE --exec $DAEMON -- \
+    $DAEMON_ARGS
+}
+
+do_stop() {
+  start-stop-daemon --stop --quiet --retry=TERM/30/KILL/5 --pidfile $PIDFILE --name $NAME.sh
+  RETVAL="$?"
+  [ "$RETVAL" = 2 ] && exit 2
+  rm -f $PIDFILE
+  return "$RETVAL"
+}
+
+case "$1" in
+start)
+  do_start
+  ;;
+stop)
+  do_stop
+  ;;
+restart)
+  do_stop
+  sleep 3
+  do_start
+  ;;
+*)
+  echo "Usage: $0 {start|stop|restart|}" >&2
+  exit 1
+  ;;
+esac
+
+exit 0
